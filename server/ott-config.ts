@@ -418,6 +418,12 @@ export const conf = convict({
 			default: 2 * 3600, // 2 hours
 		},
 	},
+	new_session_user_name_upstream_header: {
+		doc: "If this header is present when creating a new session, it will be used as a user name instead of generating a random one.",
+		format: String,
+		env: "NEW_SESSION_USER_NAME_UPSTREAM_HEADER",
+		default: "",
+	},
 });
 
 function getExtraBaseConfig(): string | undefined {

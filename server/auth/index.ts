@@ -8,15 +8,25 @@ import nocache from "nocache";
 import usermanager from "../usermanager";
 import { OttException } from "../../common/exceptions";
 import { requireApiKey } from "../admin";
+import { conf } from "../ott-config";
 
 const router = express.Router();
 router.use(nocache());
 const log = getLogger("api/auth");
 
-function createSession(): SessionInfo {
+function newSessionUserName(req: express.Request): string {
+	const header = conf.get("new_session_user_name_upstream_header");
+	let username: string | undefined;
+	if (header != "") {
+		username = req.header(header);
+	}
+	return username ?? uniqueNamesGenerator();
+}
+
+function createSession(req: express.Request): SessionInfo {
 	return {
 		isLoggedIn: false,
-		username: uniqueNamesGenerator(),
+		username: newSessionUserName(req),
 	};
 }
 
@@ -74,7 +84,7 @@ export async function authTokenMiddleware(
 			req.user = await usermanager.getUser({ id: req.ottsession.user_id });
 		} catch (err) {
 			log.warn(`Error getting user in auth middleware, logging out: ${err}`);
-			await tokens.setSessionInfo(req.token, createSession());
+			await tokens.setSessionInfo(req.token, createSession(req));
 		}
 	}
 	next();
@@ -100,7 +110,7 @@ router.get("/grant", async (req, res) => {
 	}
 	log.debug("minting new auth token...");
 	const token: AuthToken = await tokens.mint();
-	await tokens.setSessionInfo(token, createSession());
+	await tokens.setSessionInfo(token, createSession(req));
 	res.json({
 		token,
 	});
