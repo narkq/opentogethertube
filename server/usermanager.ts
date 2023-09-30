@@ -189,7 +189,7 @@ router.post("/", nocache(), async (req, res) => {
 			log.warn("no user, but logged in. forcing session into logged out state");
 			req.ottsession = {
 				isLoggedIn: false,
-				username: uniqueNamesGenerator(),
+				username: newSessionUserName(req),
 			};
 		}
 		oldUsername = req.ottsession.username;
@@ -295,7 +295,7 @@ router.post("/logout", async (req, res) => {
 				log.error(`Error logging out user ${err}`);
 				return;
 			}
-			req.ottsession = { isLoggedIn: false, username: uniqueNamesGenerator() };
+			req.ottsession = { isLoggedIn: false, username: newSessionUserName(req) };
 			await tokens.setSessionInfo(req.token, req.ottsession);
 			onUserLogOut(user, req.token);
 			res.json({
@@ -917,6 +917,15 @@ if (conf.get("env") === "test") {
 	});
 }
 
+function newSessionUserName(req: express.Request): string {
+	const header = conf.get("new_session_user_name_upstream_header");
+	let username: string | undefined;
+	if (header != "") {
+		username = req.header(header);
+	}
+	return username ?? uniqueNamesGenerator();
+}
+
 export default {
 	router,
 	mailer,
@@ -936,4 +945,5 @@ export default {
 	isUsernameTaken,
 	isEmailTaken,
 	clearAllRateLimiting,
+	newSessionUserName,
 };

@@ -1,32 +1,21 @@
 import { getLogger } from "../logger";
 import express from "express";
 import tokens, { SessionInfo } from "./tokens";
-import { uniqueNamesGenerator } from "unique-names-generator";
 import passport from "passport";
 import { AuthToken, MySession } from "../../common/models/types";
 import nocache from "nocache";
 import usermanager from "../usermanager";
 import { OttException } from "../../common/exceptions";
 import { requireApiKey } from "../admin";
-import { conf } from "../ott-config";
 
 const router = express.Router();
 router.use(nocache());
 const log = getLogger("api/auth");
 
-function newSessionUserName(req: express.Request): string {
-	const header = conf.get("new_session_user_name_upstream_header");
-	let username: string | undefined;
-	if (header != "") {
-		username = req.header(header);
-	}
-	return username ?? uniqueNamesGenerator();
-}
-
 function createSession(req: express.Request): SessionInfo {
 	return {
 		isLoggedIn: false,
-		username: newSessionUserName(req),
+		username: usermanager.newSessionUserName(req),
 	};
 }
 
