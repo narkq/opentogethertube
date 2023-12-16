@@ -249,6 +249,12 @@ export const conf = convict({
 				env: "DIRECT_PREVIEW_MAX_BYTES",
 				nullable: true,
 			},
+			preview_use_range_header: {
+				doc: "Use HTTP Range header when limiting number of bytes to generate a preview of a video.",
+				format: Boolean,
+				default: false,
+				env: "DIRECT_PREVIEW_USE_RANGE_HEADER",
+			},
 			ffprobe_strategy: {
 				doc: "The strategy to use for running ffprobe.",
 				format: ["stream", "disk", "run"],

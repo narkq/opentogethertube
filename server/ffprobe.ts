@@ -87,6 +87,17 @@ function streamDataIntoFfprobe(
 	});
 }
 
+function previewHttpHeaders() {
+	const byte_limit = conf.get("info_extractor.direct.preview_max_bytes") ?? Infinity;
+	const use_range = conf.get("info_extractor.direct.preview_use_range_header") ?? false;
+
+	if (byte_limit < Infinity && byte_limit > 0 && use_range) {
+		return {Range: `bytes=0-${byte_limit-1}`};
+	}
+
+	return {};
+}
+
 export abstract class FfprobeStrategy {
 	ffprobePath: string;
 
@@ -133,6 +144,7 @@ export class OnDiskPreviewFfprobe extends FfprobeStrategy {
 			signal: controller.signal,
 			httpAgent,
 			httpsAgent,
+			headers: previewHttpHeaders(),
 		});
 
 		const byte_limit = conf.get("info_extractor.direct.preview_max_bytes") ?? Infinity;
@@ -180,6 +192,7 @@ export class StreamFfprobe extends FfprobeStrategy {
 			signal: controller.signal,
 			httpAgent,
 			httpsAgent,
+			headers: previewHttpHeaders(),
 		});
 		try {
 			let stdout = await streamDataIntoFfprobe(this.ffprobePath, resp.data, controller);
