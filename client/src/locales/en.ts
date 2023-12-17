@@ -185,6 +185,8 @@ export default {
 		"playlist": "Playlist",
 		"text": "Or just type text to search Youtube.",
 		"search-for": 'Search YouTube for "{search}" by pressing enter, or by clicking search.',
+		"file-store-browser-close": "Go Back",
+		"file-store-browser-up": "Go Up",
 		"platforms": {
 			"youtube-videos": "Youtube videos: {url}",
 			"vimeo-videos": "Vimeo videos: {url}",
@@ -200,6 +202,7 @@ export default {
 			"failed-to-get-add-preview":
 				"Failed to get add preview. This is probably a bug, check console for details.",
 			"failed-to-all-videos": "Failed to all videos: {message}",
+			"failed-to-load-file-store-items": "Failed to load file store items",
 		},
 	},
 	"processed-text": {

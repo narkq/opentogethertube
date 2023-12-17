@@ -61,10 +61,17 @@
 					</v-col>
 				</v-row>
 			</v-container>
-			<v-container v-else-if="inputAddPreview.length === 0">
+			<v-container v-else-if="inputAddPreview.length === 0 && !showDirectFileStore">
 				<v-row justify="center" align="center">
 					<div class="add-video-helper">
 						<h1>{{ $t("add-preview.title") }}</h1>
+						<h3 v-if="directFileStoreUrl !== null">
+							<a class="link text-primary"
+								:href="directFileStoreUrl"
+								:showAddQueueTooltip="false"
+								@click="e => loadFileStore(e, directFileStoreUrl)"
+							>{{ directFileStoreUrl }}</a>
+						</h3>
 						<h3>{{ $t("add-preview.single-videos") }}</h3>
 						<ul>
 							<li>
@@ -145,6 +152,43 @@
 					</div>
 				</v-row>
 			</v-container>
+			<v-container v-else-if="inputAddPreview.length === 0 && showDirectFileStore">
+				<v-row justify="left">
+					<div class="file-store-item-list">
+						<ul>
+							<li v-if="fileStoreViewUrl == directFileStoreUrl">
+								<a class="link text-primary" @click="hideFileStore">
+									<i class="fa fa-arrow-left"></i> {{ $t("add-preview.file-store-browser-close") }}
+								</a>
+							</li>
+							<li v-if="fileStoreViewUrl != directFileStoreUrl">
+								<a class="link text-primary" @click="e => loadFileStore(e, fileStoreParentUrl)">
+									<i class="fa fa-arrow-up"></i> {{ $t("add-preview.file-store-browser-up") }}
+								</a>
+							</li>
+							<li v-for="(item, index) in fileStoreItems">
+								<a class="link text-primary" v-if="item.is_dir" @click="e => loadFileStore(e, item.url)">
+									<i class="fa fa-folder"></i>
+									{{ item.name }}
+								</a>
+								<a
+									v-if="!item.is_dir"
+									class="link text-primary"
+									@click="setAddPreviewText(item.url)"
+								>
+									<span>
+										<i class="fa fa-film"></i>
+										{{ item.name }}
+										<v-tooltip top activator="parent">
+											<span>{{ $t("processed-text.link-hint") }}</span>
+										</v-tooltip>
+									</span>
+								</a>
+							</li>
+						</ul>
+					</div>
+				</v-row>
+			</v-container>
 		</v-row>
 		<div v-if="highlightedAddPreviewItem">
 			<VideoQueueItem
@@ -177,6 +221,12 @@ import toast from "@/util/toast";
 import { Video } from "ott-common/models/video";
 import { OttResponseBody, OttApiResponseAddPreview } from "ott-common/models/rest-api";
 import axios from "axios";
+
+interface FileStoreItem {
+	name: string,
+	url: string,
+	is_dir: boolean,
+}
 
 export const AddPreview = defineComponent({
 	name: "AddPreview",
@@ -248,6 +298,72 @@ export const AddPreview = defineComponent({
 			 */
 			return store.state.production;
 		});
+
+		const directFileStoreUrl = computed(() => {
+			let url = store.state.directFileStoreUrl ?? '';
+			if (!url.match(/\/$/)) {
+				url += '/';
+			}
+			return url;
+		});
+		const showDirectFileStore = ref(false);
+		const fileStoreViewUrl = ref("");
+		const fileStoreParentUrl = ref("");
+		const fileStoreItems: Ref<FileStoreItem[]> = ref([]);
+
+		async function loadFileStore(e: Event, url: string) {
+			if (!url.match(/\/$/)) {
+				url += '/';
+			}
+			if (e) {
+				e.preventDefault();
+			}
+			try {
+				const res = await axios.get<FileStoreItem[]>(url, {
+					headers: { Accept: "application/json" },
+					withCredentials: true,
+				});
+
+				showDirectFileStore.value = true;
+				fileStoreParentUrl.value = url.replace(/[^/]+\/$/, '');
+				fileStoreViewUrl.value = url;
+				let items: FileStoreItem[] = [];
+				for (let item of res.data) {
+					if (!item.is_dir && !/\/*\.(mp(3|4v?)|mpg4|webm|flv|mkv|avi|wmv|qt|mov|ogv|m4v|h26[1-4]|ogg)$/.test(
+						item.url.split("?")[0]
+					)) {
+						continue;
+					}
+					items.push({
+						name: item.name,
+						url: url + item.url.replace(/^\.\//, ''),
+						is_dir: item.is_dir,
+					});
+				}
+				fileStoreItems.value = items;
+			} catch (err) {
+				console.error("Failed to load file store items", err);
+				if (axios.isAxiosError(err) && err.response) {
+					console.error(
+						`load file store items response: ${err.response.status}`,
+						err.response.data
+					);
+				}
+
+				toast.add({
+					style: ToastStyle.Error,
+					content: t("add-preview.messages.failed-to-load-file-store-items"),
+					duration: 6000,
+				});
+			}
+		}
+
+		function hideFileStore(e: Event) {
+			showDirectFileStore.value = false;
+			if (e) {
+				e.preventDefault();
+			}
+		}
 
 		async function requestAddPreview() {
 			try {
@@ -376,6 +492,14 @@ export const AddPreview = defineComponent({
 			isAddPreviewInputUrl,
 			production,
 
+			directFileStoreUrl,
+			showDirectFileStore,
+			fileStoreViewUrl,
+			fileStoreParentUrl,
+			fileStoreItems,
+			loadFileStore,
+			hideFileStore,
+
 			requestAddPreview,
 			requestAddPreviewDebounced,
 			requestAddPreviewExplicit,
@@ -415,6 +539,15 @@ export default AddPreview;
 		overflow: hidden;
 		text-overflow: ellipsis;
 		-webkit-line-clamp: 1;
+	}
+}
+
+.file-store-item-list {
+	li {
+		overflow: hidden;
+		a {
+			text-decoration: none;
+		}
 	}
 }
 </style>

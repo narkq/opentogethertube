@@ -182,6 +182,8 @@ export default {
 		"playlist": "Плейлист",
 		"text": "Или просто введите текст для поиска на Youtube",
 		"search-for": 'Найдите на YouTube "{search}", нажав Enter или кнопку Поиск.',
+		"file-store-browser-close": "Назад",
+		"file-store-browser-up": "Наверх",
 		"platforms": {
 			"youtube-videos": "YouTube видео: {url}",
 			"vimeo-videos": "Vimeo видео: {url}",
@@ -198,6 +200,7 @@ export default {
 			"failed-to-get-add-preview":
 				"Не удалось получить превью для видео. Вероятно, это ошибка, подробности в консоли.",
 			"failed-to-all-videos": "Ошибка для всех видео: {message}",
+			"failed-to-load-file-store-items": "Не удалось загрузить список файлов в файловом хранилище.",
 		},
 	},
 	"processed-text": {

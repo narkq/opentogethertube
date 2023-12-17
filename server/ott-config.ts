@@ -347,6 +347,13 @@ export const conf = convict({
 		default: "",
 		nullable: true,
 	},
+	direct_file_store_url: {
+		doc: 'The URL to use for built-in navigation through the video file store. This environment var must be present during building the client, otherwise it will not work.',
+		format: String,
+		env: "OTT_DIRECT_FILE_STORE_URL",
+		default: null,
+		nullable: true,
+	},
 	force_insecure_cookies: {
 		doc: "Force insecure cookies. This is useful if you are running behind a reverse proxy that handles SSL.",
 		format: Boolean,

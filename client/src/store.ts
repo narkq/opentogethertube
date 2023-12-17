@@ -68,6 +68,7 @@ interface BaseStoreState {
 	fullscreen: boolean;
 	production: boolean;
 	shortUrl?: string;
+	directFileStoreUrl?: string | null;
 }
 
 export function buildNewStore() {
@@ -107,6 +108,7 @@ export function buildNewStore() {
 				keepAliveInterval: null,
 
 				shortUrl: import.meta.env.OTT_SHORT_URL_HOSTNAME,
+				directFileStoreUrl: import.meta.env.OTT_DIRECT_FILE_STORE_URL,
 			};
 		},
 		mutations: {
